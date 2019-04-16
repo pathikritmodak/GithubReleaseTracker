@@ -2,8 +2,10 @@ import atoma
 import requests
 import slack
 import pandas as pd
+import numpy as np
 from tabulate import tabulate
 from datetime import datetime, timedelta, timezone
+
 
 
 REPOS_FILENAME = 'repos.txt'
@@ -32,7 +34,7 @@ def get_entries_from_parsed_atom_feed(parsed_atom_feed):
 
 
 def is_datetime_in_last_24h(release_datetime):
-    return datetime.now(timezone.utc) - timedelta(hours=24) <= release_datetime
+    return datetime.now(timezone.utc) - timedelta(hours=72) <= release_datetime
 
 
 def retrieve_releases_in_last_24h(parsed_atom_feeds):
@@ -41,7 +43,6 @@ def retrieve_releases_in_last_24h(parsed_atom_feeds):
     for i in range(len(entries)):
         filtered = list(filter(lambda x: is_datetime_in_last_24h(x.updated), entries[i]))
         atom_list.append(filtered)
-        i += 1
     atom_list = list(filter(None, atom_list))
     return atom_list
 
@@ -57,13 +58,11 @@ def main():
     for i in range(len(releases_last_24h)):
         versions_list = list(map(lambda x: x.title.value, releases_last_24h[i]))
         version_urls = list(map(lambda x: x.links, releases_last_24h[i]))
-        i += 1
         version_list.extend(versions_list)
         url_list.extend(version_urls)
     url_decoded_list = []
     for j in range(len(url_list)):
         ver_urls = list(map(lambda x: x.href, url_list[j]))
-        j += 1
         url_decoded_list.extend(ver_urls)
 
     pd.set_option('display.max_colwidth', -1)
@@ -75,7 +74,11 @@ def main():
         print("No new versions released")
     else:
         print('New versions released: ' + '\n' + tabulate(df, headers='keys', tablefmt="psql", showindex=False))
-        slack.send_slack_message(tabulate(df, tablefmt='github', showindex=False))
+        for i in range(len(df)):
+            data = {'version': [df.loc[i, 'version']], 'url' : [df.loc[i, 'url']], 'repo': [df.loc[i, 'repo']]}
+            df2 = pd.DataFrame(data, columns=['version', 'url', 'repo'])
+            data = np.squeeze(np.asarray(df2))
+            slack.send_slack_message(data)
 
 
 if __name__ == '__main__':
