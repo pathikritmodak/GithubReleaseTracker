@@ -13,7 +13,10 @@ def send_slack_message(message):
         print("Please set %s environment variable" % (er))
         raise
 
-    data = {'username': 'GithubReleaseTracker', 'attachments': [{'color': 'green', 'title': 'New Versions Released', 'text': '```'+message+'```', "mrkdwn": "true"}]}
+    data = {'username': 'GithubReleaseTracker', 'attachments': [{'color': '#36a64f', 'pretext': 'New Versions Released',
+                                                                 'title': message[0], 'title_link': message[1], 'text':
+                                                                     message[2]}]}
+    
     req = urllib.request.Request(slack_webhook)
     req.add_header('Content-Type', 'application/json')
 
