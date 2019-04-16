@@ -34,7 +34,7 @@ def get_entries_from_parsed_atom_feed(parsed_atom_feed):
 
 
 def is_datetime_in_last_24h(release_datetime):
-    return datetime.now(timezone.utc) - timedelta(hours=72) <= release_datetime
+    return datetime.now(timezone.utc) - timedelta(hours=24) <= release_datetime
 
 
 def retrieve_releases_in_last_24h(parsed_atom_feeds):
